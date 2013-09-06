@@ -643,3 +643,17 @@ class SchemaTests(TransactionTestCase):
         self.assertTrue(
             connection.introspection.get_indexes(connection.cursor(), Tag._meta.db_table)['slug']['primary_key'],
         )
+
+    def test_clean_exit(self):
+        """
+        Tests clean exit when exception is encountered in schema editor block
+        """
+
+        class SomeError(Exception):
+            pass
+
+        try:
+            with connection.schema_editor() as editor:
+                raise SomeError
+        except SomeError:
+            self.assertFalse(connection.in_atomic_block)
